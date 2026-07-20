@@ -1,5 +1,9 @@
 {
   "keys": {
-    "SNDR-8512-C71C-CFC5": "dsfsfdsdf"
+    "SNDR-8512-C71C-CFC5": "dsfsfdsdf",
+    "SNDR-FCD9-548C-3BF7": {
+      "hwid": "SNDR-HWID-4513677335",
+      "expiresAt": 1784649643
+    }
   }
 }
