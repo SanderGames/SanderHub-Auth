@@ -60,6 +60,7 @@ local MyHWID = "SNDR-HWID-" .. tostring(LocalPlayer.UserId)
 local GITHUB_RAW_URL = "https://raw.githubusercontent.com/SanderGames/SanderHub-Auth/main/keys.json"
 
 -- --- OTO-GİRİŞ SİSTEMİ (AUTO-LOGIN) ---
+local AutoLoginSuccess = false
 pcall(function()
     if isfile and readfile and isfile("SanderHub_Key.txt") then
         local savedKey = readfile("SanderHub_Key.txt")
@@ -69,6 +70,7 @@ pcall(function()
             if decodeSuccess and decodedData and decodedData.keys then
                 local keyData = decodedData.keys[savedKey]
                 if keyData and keyData.hwid == MyHWID and keyData.expiresAt > os.time() then
+                    AutoLoginSuccess = true
                     Authenticated = true
                     GlobalKeyExpiresAt = keyData.expiresAt
                 end
@@ -77,14 +79,11 @@ pcall(function()
     end
 end)
 
-if Authenticated then
-    -- Eğer önceden girilmiş ve geçerli bir key varsa, menüyü hiç gösterme.
-    return
-end
-
-local KeyGui = Instance.new("ScreenGui", GUI_PARENT)
-KeyGui.Name = "SanderKeyGui"
-KeyGui.ResetOnSpawn = false
+-- Eğer önceden girilmiş ve geçerli bir key varsa, Key menüsü sistemini tamamen atla (bypass)
+if not AutoLoginSuccess then
+    local KeyGui = Instance.new("ScreenGui", GUI_PARENT)
+    KeyGui.Name = "SanderKeyGui"
+    KeyGui.ResetOnSpawn = false
 
 local KeyFrame = Instance.new("Frame", KeyGui)
 KeyFrame.Size = UDim2.new(0, 350, 0, 350)
@@ -220,7 +219,9 @@ SubmitBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-repeat task.wait() until Authenticated
+    -- Sadece KeyGui açılmışsa ve hala kimlik doğrulanmamışsa bekle
+    repeat task.wait() until Authenticated
+end
 
 -- ==========================================
 -- ⚙️ CONFIGURATION & STATE (DEVASA VERİTABANI)
