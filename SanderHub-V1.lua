@@ -61,8 +61,8 @@ KeyGui.Name = "SanderKeyGui"
 KeyGui.ResetOnSpawn = false
 
 local KeyFrame = Instance.new("Frame", KeyGui)
-KeyFrame.Size = UDim2.new(0, 350, 0, 200)
-KeyFrame.Position = UDim2.new(0.5, -175, 0.5, -100)
+KeyFrame.Size = UDim2.new(0, 350, 0, 350)
+KeyFrame.Position = UDim2.new(0.5, -175, 0.5, -175)
 KeyFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 KeyFrame.BorderSizePixel = 0
 Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 8)
@@ -80,9 +80,19 @@ KeyTitle.TextColor3 = Color3.new(1,1,1)
 local KeyTitleGrad = Instance.new("UIGradient", KeyTitle)
 KeyTitleGrad.Color = ColorSequence.new{ColorSequenceKeypoint.new(0, Color3.fromRGB(0,0,0)), ColorSequenceKeypoint.new(1, Color3.fromRGB(0,255,100))}
 
+local ExtraInfo = Instance.new("TextLabel", KeyFrame)
+ExtraInfo.Size = UDim2.new(0.9, 0, 0, 50)
+ExtraInfo.Position = UDim2.new(0.05, 0, 0.25, 0)
+ExtraInfo.BackgroundTransparency = 1
+ExtraInfo.TextColor3 = Color3.fromRGB(200, 200, 200)
+ExtraInfo.Text = "Keys are obtained exclusively from our Discord Server!\nClick 'Join Discord' below to get your key."
+ExtraInfo.Font = Enum.Font.Gotham
+ExtraInfo.TextSize = 12
+ExtraInfo.TextWrapped = true
+
 local KeyInput = Instance.new("TextBox", KeyFrame)
 KeyInput.Size = UDim2.new(0.9, 0, 0, 40)
-KeyInput.Position = UDim2.new(0.05, 0, 0.35, 0)
+KeyInput.Position = UDim2.new(0.05, 0, 0.45, 0)
 KeyInput.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 KeyInput.TextColor3 = Color3.new(1,1,1)
 KeyInput.PlaceholderText = "Enter your Key here..."
@@ -92,7 +102,7 @@ Instance.new("UICorner", KeyInput).CornerRadius = UDim.new(0, 4)
 
 local SubmitBtn = Instance.new("TextButton", KeyFrame)
 SubmitBtn.Size = UDim2.new(0.42, 0, 0, 35)
-SubmitBtn.Position = UDim2.new(0.05, 0, 0.7, 0)
+SubmitBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
 SubmitBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 SubmitBtn.TextColor3 = Color3.new(1,1,1)
 SubmitBtn.Text = "Verify Key"
@@ -102,7 +112,7 @@ Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 4)
 
 local GetKeyBtn = Instance.new("TextButton", KeyFrame)
 GetKeyBtn.Size = UDim2.new(0.42, 0, 0, 35)
-GetKeyBtn.Position = UDim2.new(0.53, 0, 0.7, 0)
+GetKeyBtn.Position = UDim2.new(0.53, 0, 0.65, 0)
 GetKeyBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
 GetKeyBtn.TextColor3 = Color3.new(1,1,1)
 GetKeyBtn.Text = "Copy Code"
@@ -110,17 +120,31 @@ GetKeyBtn.Font = Enum.Font.GothamBold
 GetKeyBtn.TextSize = 14
 Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 4)
 
+local DiscordBtn = Instance.new("TextButton", KeyFrame)
+DiscordBtn.Size = UDim2.new(0.9, 0, 0, 35)
+DiscordBtn.Position = UDim2.new(0.05, 0, 0.78, 0)
+DiscordBtn.BackgroundColor3 = Color3.fromRGB(88, 101, 242) -- Discord Blurple
+DiscordBtn.TextColor3 = Color3.new(1,1,1)
+DiscordBtn.Text = "Join Discord"
+DiscordBtn.Font = Enum.Font.GothamBold
+DiscordBtn.TextSize = 14
+Instance.new("UICorner", DiscordBtn).CornerRadius = UDim.new(0, 4)
+
 local StatusTxt = Instance.new("TextLabel", KeyFrame)
 StatusTxt.Size = UDim2.new(1, 0, 0, 20)
-StatusTxt.Position = UDim2.new(0, 0, 0.9, 0)
+StatusTxt.Position = UDim2.new(0, 0, 0.92, 0)
 StatusTxt.BackgroundTransparency = 1
 StatusTxt.TextColor3 = Color3.fromRGB(200, 200, 200)
 StatusTxt.Text = "Waiting for key..."
 StatusTxt.Font = Enum.Font.Gotham
 StatusTxt.TextSize = 12
 
-local MyHWID = "SNDR-HWID-" .. tostring(LocalPlayer.UserId)
-local GITHUB_RAW_URL = "https://raw.githubusercontent.com/SanderGames/SanderHub-Auth/main/keys.json"
+local GlobalKeyExpiresAt = 0
+
+DiscordBtn.MouseButton1Click:Connect(function()
+    if setclipboard then setclipboard("https://discord.gg/R8Zsa4vtR") end
+    StatusTxt.Text = "Discord Invite copied to clipboard!"
+end)
 
 GetKeyBtn.MouseButton1Click:Connect(function()
     if setclipboard then setclipboard(MyHWID) end
@@ -135,11 +159,18 @@ SubmitBtn.MouseButton1Click:Connect(function()
     end)
     
     local isValid = false
+    local isExpired = false
     if success and response then
         local decodeSuccess, decodedData = pcall(function() return HttpService:JSONDecode(response) end)
         if decodeSuccess and decodedData and decodedData.keys then
-            if decodedData.keys[input] == MyHWID then
-                isValid = true
+            local keyData = decodedData.keys[input]
+            if keyData and keyData.hwid == MyHWID then
+                if keyData.expiresAt > os.time() then
+                    isValid = true
+                    GlobalKeyExpiresAt = keyData.expiresAt
+                else
+                    isExpired = true
+                end
             end
         end
     end
@@ -149,11 +180,17 @@ SubmitBtn.MouseButton1Click:Connect(function()
     if isValid then
         StatusTxt.Text = "Authenticated! Loading..."
         StatusTxt.TextColor3 = Color3.fromRGB(0, 255, 100)
+        
+        -- Smooth close
+        TweenService:Create(KeyFrame, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -175, 1.5, 0)}):Play()
         task.wait(0.5)
         KeyGui:Destroy()
         Authenticated = true
+    elseif isExpired then
+        StatusTxt.Text = "Your Key has Expired!"
+        StatusTxt.TextColor3 = Color3.fromRGB(255, 150, 50)
     else
-        StatusTxt.Text = "Invalid Key!"
+        StatusTxt.Text = "Invalid Key or HWID Mismatch!"
         StatusTxt.TextColor3 = Color3.fromRGB(255, 50, 50)
     end
 end)
@@ -1595,6 +1632,24 @@ local TabSettings = CreateTab("  🔧  Settings", "🔧")
 
 -- MAIN TAB
 CreateLabel(TabMain, "[ ACCOUNT & STATS ]")
+local KeyExpiryLabel = CreateLabel(TabMain, "⏳ Key Expires In: Calculating...")
+
+task.spawn(function()
+    while task.wait(1) do
+        if GlobalKeyExpiresAt and GlobalKeyExpiresAt > 0 then
+            local remaining = GlobalKeyExpiresAt - os.time()
+            if remaining > 0 then
+                local days = math.floor(remaining / 86400)
+                local hours = math.floor((remaining % 86400) / 3600)
+                local mins = math.floor((remaining % 3600) / 60)
+                KeyExpiryLabel.Text = "⏳ Key Expires In: " .. days .. "d " .. hours .. "h " .. mins .. "m"
+            else
+                KeyExpiryLabel.Text = "⏳ Key Expired!"
+                -- Optional: You can kick the player here if you want real-time expiration kicking
+            end
+        end
+    end
+end)
 CreateLabel(TabMain, "Welcome, " .. LocalPlayer.DisplayName .. " (@" .. LocalPlayer.Name .. ")")
 CreateLabel(TabMain, "Ping: " .. (Stats.Network.ServerStatsItem["Data Ping"]:GetValue() or 0) .. " ms")
 CreateLabel(TabMain, "Account Age: " .. LocalPlayer.AccountAge .. " Days")
@@ -1629,7 +1684,6 @@ CreateLabel(TabPlayer, "[ MOVEMENT & ABILITY ]")
 CreateToggle(TabPlayer, "Noclip", "Allows walking through walls.", "Noclip")
 CreateToggle(TabPlayer, "Infinite Jump", "Jump infinitely in the air.", "InfJump")
 CreateToggle(TabPlayer, "Fly Mode", "Enables flying with W,A,S,D.", "Fly")
-CreateKeyBind(TabPlayer, "Fly KeyBind", "Key to toggle fly mode.", "FlyBind")
 CreateSlider(TabPlayer, "Fly Speed", 10, 200, "FlySpeed")
 CreateToggle(TabPlayer, "Invisibility", "Makes character transparent (Client side).", "Invisibility")
 CreateToggle(TabPlayer, "Spinbot", "Spins your character continuously.", "Spinbot")
