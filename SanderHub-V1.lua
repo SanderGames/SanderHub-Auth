@@ -11,10 +11,10 @@
 
 local StartTime = tick()
 
-if game.PlaceId ~= 142823684 and game.PlaceId ~= 3353681073 then
-    game.Players.LocalPlayer:Kick("SanderHub-V1 exclusively supports Murder Mystery 2!")
-    return
-end
+-- if game.PlaceId ~= 142823684 and game.PlaceId ~= 3353681073 then
+--     game.Players.LocalPlayer:Kick("SanderHub-V1 exclusively supports Murder Mystery 2!")
+--     return
+-- end
 
 -- ==========================================
 -- 🛠️ SERVICES & LOCALS
@@ -120,8 +120,7 @@ StatusTxt.Font = Enum.Font.Gotham
 StatusTxt.TextSize = 12
 
 local MyHWID = "SNDR-HWID-" .. tostring(LocalPlayer.UserId)
--- Placeholder URL, kullanıcı bunu kendi GitHub Raw linki ile değiştirmelidir.
-local GITHUB_RAW_URL = "https://github.com/SanderGames/SanderHub-Auth/blob/main/keys.json"
+local GITHUB_RAW_URL = "https://raw.githubusercontent.com/SanderGames/SanderHub-Auth/main/keys.json"
 
 GetKeyBtn.MouseButton1Click:Connect(function()
     if setclipboard then setclipboard(MyHWID) end
