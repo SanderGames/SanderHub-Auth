@@ -56,6 +56,32 @@ end
 -- 🔑 KEY SYSTEM & AUTHENTICATION
 -- ==========================================
 local Authenticated = false
+local MyHWID = "SNDR-HWID-" .. tostring(LocalPlayer.UserId)
+local GITHUB_RAW_URL = "https://raw.githubusercontent.com/SanderGames/SanderHub-Auth/main/keys.json"
+
+-- --- OTO-GİRİŞ SİSTEMİ (AUTO-LOGIN) ---
+pcall(function()
+    if isfile and readfile and isfile("SanderHub_Key.txt") then
+        local savedKey = readfile("SanderHub_Key.txt")
+        local success, response = pcall(function() return game:HttpGet(GITHUB_RAW_URL) end)
+        if success and response then
+            local decodeSuccess, decodedData = pcall(function() return HttpService:JSONDecode(response) end)
+            if decodeSuccess and decodedData and decodedData.keys then
+                local keyData = decodedData.keys[savedKey]
+                if keyData and keyData.hwid == MyHWID and keyData.expiresAt > os.time() then
+                    Authenticated = true
+                    GlobalKeyExpiresAt = keyData.expiresAt
+                end
+            end
+        end
+    end
+end)
+
+if Authenticated then
+    -- Eğer önceden girilmiş ve geçerli bir key varsa, menüyü hiç gösterme.
+    return
+end
+
 local KeyGui = Instance.new("ScreenGui", GUI_PARENT)
 KeyGui.Name = "SanderKeyGui"
 KeyGui.ResetOnSpawn = false
@@ -110,15 +136,17 @@ SubmitBtn.Font = Enum.Font.GothamBold
 SubmitBtn.TextSize = 14
 Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 4)
 
-local GetKeyBtn = Instance.new("TextButton", KeyFrame)
-GetKeyBtn.Size = UDim2.new(0.42, 0, 0, 35)
-GetKeyBtn.Position = UDim2.new(0.53, 0, 0.65, 0)
-GetKeyBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
-GetKeyBtn.TextColor3 = Color3.new(1,1,1)
-GetKeyBtn.Text = "Copy Code"
-GetKeyBtn.Font = Enum.Font.GothamBold
-GetKeyBtn.TextSize = 14
-Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 4)
+local HWIDBox = Instance.new("TextBox", KeyFrame)
+HWIDBox.Size = UDim2.new(0.42, 0, 0, 35)
+HWIDBox.Position = UDim2.new(0.53, 0, 0.65, 0)
+HWIDBox.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+HWIDBox.TextColor3 = Color3.new(0, 255, 100)
+HWIDBox.Text = MyHWID
+HWIDBox.ClearTextOnFocus = false
+HWIDBox.TextEditable = false -- Sadece kopyalanabilir
+HWIDBox.Font = Enum.Font.GothamBold
+HWIDBox.TextSize = 12
+Instance.new("UICorner", HWIDBox).CornerRadius = UDim.new(0, 4)
 
 local DiscordBtn = Instance.new("TextButton", KeyFrame)
 DiscordBtn.Size = UDim2.new(0.9, 0, 0, 35)
@@ -139,16 +167,9 @@ StatusTxt.Text = "Waiting for key..."
 StatusTxt.Font = Enum.Font.Gotham
 StatusTxt.TextSize = 12
 
-local GlobalKeyExpiresAt = 0
-
 DiscordBtn.MouseButton1Click:Connect(function()
     if setclipboard then setclipboard("https://discord.gg/R8Zsa4vtR") end
     StatusTxt.Text = "Discord Invite copied to clipboard!"
-end)
-
-GetKeyBtn.MouseButton1Click:Connect(function()
-    if setclipboard then setclipboard(MyHWID) end
-    StatusTxt.Text = "Code copied to clipboard!"
 end)
 
 SubmitBtn.MouseButton1Click:Connect(function()
@@ -181,8 +202,12 @@ SubmitBtn.MouseButton1Click:Connect(function()
         StatusTxt.Text = "Authenticated! Loading..."
         StatusTxt.TextColor3 = Color3.fromRGB(0, 255, 100)
         
+        pcall(function()
+            if writefile then writefile("SanderHub_Key.txt", input) end
+        end)
+        
         -- Smooth close
-        TweenService:Create(KeyFrame, TweenInfo.new(0.5), {Position = UDim2.new(0.5, -175, 1.5, 0)}):Play()
+        TweenService:Create(KeyFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -175, 1.5, 0)}):Play()
         task.wait(0.5)
         KeyGui:Destroy()
         Authenticated = true
