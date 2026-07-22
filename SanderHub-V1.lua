@@ -64,7 +64,7 @@ local AutoLoginSuccess = false
 pcall(function()
     if isfile and readfile and isfile("SanderHub_Key.txt") then
         local savedKey = readfile("SanderHub_Key.txt")
-        local success, response = pcall(function() return game:HttpGet("https://raw.githubusercontent.com/SanderGames/SanderHub-Auth/main/keys.json?t=" .. tostring(tick())) end)
+        local success, response = pcall(function() return game:HttpGet("http://127.0.0.1:8080/api/verify_key") end)
         if success and response then
             local decodeSuccess, decodedData = pcall(function() return HttpService:JSONDecode(response) end)
             if decodeSuccess and decodedData and decodedData.keys then
@@ -175,7 +175,7 @@ SubmitBtn.MouseButton1Click:Connect(function()
     StatusTxt.Text = "Checking key..."
     local input = KeyInput.Text
     local success, response = pcall(function()
-        return game:HttpGet("https://raw.githubusercontent.com/SanderGames/SanderHub-Auth/main/keys.json?t=" .. tostring(tick()))
+        return game:HttpGet("http://127.0.0.1:8080/api/verify_key")
     end)
     
     local isValid = false
