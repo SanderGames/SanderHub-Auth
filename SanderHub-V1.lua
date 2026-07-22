@@ -57,7 +57,7 @@ end
 -- ==========================================
 local Authenticated = false
 local MyHWID = "SNDR-HWID-" .. tostring(LocalPlayer.UserId)
-local GITHUB_RAW_URL = "https://raw.githubusercontent.com/SanderGames/SanderHub-Auth/main/keys.json"
+local GITHUB_RAW_URL = "https://raw.githubusercontent.com/SanderGames/SanderHub-Auth/main/keys.json?t=" .. tostring(tick())
 
 -- --- OTO-GİRİŞ SİSTEMİ (AUTO-LOGIN) ---
 local AutoLoginSuccess = false
